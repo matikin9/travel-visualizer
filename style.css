@@ -1,0 +1,62 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f5f5f5;
+    width: 100%;
+    min-height: 100%;
+    overflow: hidden;
+}
+
+#content {
+    width: 100%;
+    min-height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#background {
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+    z-index: 100;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+}
+
+#itinerary {
+    width: 100%;
+    min-height: 100%;
+    z-index: 1000;
+    position: absolute;
+    top: 80px;
+    left: 0;
+    bottom: 0;
+
+}
+
+.bg-column {
+    width: 230px;
+    height: auto;
+    min-height: 100%;
+    position: absolute;
+    top: 0;
+    z-index: 100;
+    text-align: center;
+    background-color: rgb(0, 255, 255);
+}
+
+.card {
+    margin: 0px;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.5);
+    width: 200px;
+    height: 100px;
+    position: absolute;
+    z-index: 1000;
+}
