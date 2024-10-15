@@ -68,12 +68,18 @@ function displayData(stayData, activityData) {
         // loop through activities and display on page
         activityData.forEach(activityRow => {
             if (activityRow['Date'] == stayRow['Date']) {
-                divChild.innerHTML += `${activityRow['Activity']}<br>`;
+                let activity = document.createElement('div');
+                activity.classList.add('activity');
+                activity.innerHTML = `${activityRow['Activity']}<br>`;
+                divChild.appendChild(activity);
             }
         });
 
         let divchildHeight = divChild.clientHeight;
-        div.appendChild(divChild);
+
+        if (divChild.children.length > 0) {
+            div.appendChild(divChild);
+        }
 
         itinerary.appendChild(div);
 
