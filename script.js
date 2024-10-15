@@ -1,12 +1,6 @@
 const DATA_SOURCE_STAYS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVEanmT6_1IXNFstVxsplwm9iAGV5SQ7AzlFQce0_9e8YmvGCTt5DGbWMJCmbKOCv2XQZj-sShq2p9/pub?gid=0&single=true&output=csv';
 const DATA_SOURCE_ACTIVITES = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVEanmT6_1IXNFstVxsplwm9iAGV5SQ7AzlFQce0_9e8YmvGCTt5DGbWMJCmbKOCv2XQZj-sShq2p9/pub?gid=69921073&single=true&output=csv';
 
-// fetch data from multiple data sources
-// Promise.all([
-//     fetch(DATA_SOURCE_STAYS).then(response => response.text()),
-//     fetch(DATA_SOURCE_ACTIVITES).then(response => response.text())
-// ])
-
 async function getData(url) {
     try {
         const response = await fetch(url);
@@ -111,26 +105,26 @@ function createColumn(date) {
     background.appendChild(bgColumn);
 }
 
-// // add event listener for a click and drag event and translate it to vertical and horizontal scrolling
-// let isDragging = false;
-// let lastX = 0;
-// let lastY = 0;
-// document.addEventListener('mousedown', function(event) {
-//     isDragging = true;
-//     lastX = event.clientX;
-//     lastY = event.clientY;
-//     // change cursor to grabbing
-//     document.body.style.cursor = 'grabbing';
-// });
-// document.addEventListener('mouseup', function(event) {
-//     isDragging = false;
-//     // change cursor back to normal
-//     document.body.style.cursor = 'default';
-// });
-// document.addEventListener('mousemove', function(event) {
-//     if (isDragging) {
-//         window.scroll(window.scrollX + (lastX - event.clientX), window.scrollY + (lastY - event.clientY));
-//         lastX = event.clientX;
-//         lastY = event.clientY;
-//     }
-// });
+// add event listener for a click and drag event and translate it to vertical and horizontal scrolling
+let isDragging = false;
+let lastX = 0;
+let lastY = 0;
+document.addEventListener('mousedown', function(event) {
+    isDragging = true;
+    lastX = event.clientX;
+    lastY = event.clientY;
+    // change cursor to grabbing
+    document.body.style.cursor = 'grabbing';
+});
+document.addEventListener('mouseup', function(event) {
+    isDragging = false;
+    // change cursor back to normal
+    document.body.style.cursor = 'default';
+});
+document.addEventListener('mousemove', function(event) {
+    if (isDragging) {
+        window.scroll(window.scrollX + (lastX - event.clientX), window.scrollY + (lastY - event.clientY));
+        lastX = event.clientX;
+        lastY = event.clientY;
+    }
+});
