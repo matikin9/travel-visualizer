@@ -111,26 +111,26 @@ function createColumn(date) {
     background.appendChild(bgColumn);
 }
 
-// add event listener for a click and drag event and translate it to vertical and horizontal scrolling
-let isDragging = false;
-let lastX = 0;
-let lastY = 0;
-document.addEventListener('mousedown', function(event) {
-    isDragging = true;
-    lastX = event.clientX;
-    lastY = event.clientY;
-    // change cursor to grabbing
-    document.body.style.cursor = 'grabbing';
-});
-document.addEventListener('mouseup', function(event) {
-    isDragging = false;
-    // change cursor back to normal
-    document.body.style.cursor = 'default';
-});
-document.addEventListener('mousemove', function(event) {
-    if (isDragging) {
-        window.scroll(window.scrollX + (lastX - event.clientX), window.scrollY + (lastY - event.clientY));
-        lastX = event.clientX;
-        lastY = event.clientY;
-    }
-});
+// // add event listener for a click and drag event and translate it to vertical and horizontal scrolling
+// let isDragging = false;
+// let lastX = 0;
+// let lastY = 0;
+// document.addEventListener('mousedown', function(event) {
+//     isDragging = true;
+//     lastX = event.clientX;
+//     lastY = event.clientY;
+//     // change cursor to grabbing
+//     document.body.style.cursor = 'grabbing';
+// });
+// document.addEventListener('mouseup', function(event) {
+//     isDragging = false;
+//     // change cursor back to normal
+//     document.body.style.cursor = 'default';
+// });
+// document.addEventListener('mousemove', function(event) {
+//     if (isDragging) {
+//         window.scroll(window.scrollX + (lastX - event.clientX), window.scrollY + (lastY - event.clientY));
+//         lastX = event.clientX;
+//         lastY = event.clientY;
+//     }
+// });
