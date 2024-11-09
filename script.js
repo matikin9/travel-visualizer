@@ -58,7 +58,17 @@ function displayData(stayData, activityData) {
     
         const div = document.createElement('div');
         div.classList.add('card');
-        div.innerHTML = `<strong>${stayRow['Locale']}</strong><br>${stayRow['Stay']}<br>${stayRow['Notes']}`;
+
+        div.innerHTML = `<strong>${stayRow['Locale']}</strong><br>`;
+
+        let link = document.createElement('a');
+        if (stayRow['Link'] != '') {
+            link.href = stayRow['Link'];
+            link.target = '_blank';
+            link.innerHTML = stayRow['Stay'];
+            div.appendChild(link);
+
+        div.innerHTML += `<br>${stayRow['Notes']}`;
         div.style.left = `${((iDate-1) * 230) + 120}px`;
         div.style.top = `${(iLocale * 120)}px`;
 
