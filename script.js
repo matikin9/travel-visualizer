@@ -70,7 +70,18 @@ function displayData(stayData, activityData) {
             if (activityRow['Date'] == stayRow['Date']) {
                 let activity = document.createElement('div');
                 activity.classList.add('activity');
-                activity.innerHTML = `${activityRow['Activity']}<br>`;
+
+                if (activityRow['Link'] != '') {
+                    let link = document.createElement('a');
+                    link.href = activityRow['Link'];
+                    link.target = '_blank';
+                    link.innerHTML = activityRow['Activity'];
+                    activity.appendChild(link);
+                } else {
+                    activity.innerHTML = activityRow['Activity'];
+                }
+
+                activity.innerHTML += '<br>';
                 divChild.appendChild(activity);
             }
         });
