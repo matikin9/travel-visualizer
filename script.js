@@ -67,6 +67,9 @@ function displayData(stayData, activityData) {
             link.target = '_blank';
             link.innerHTML = stayRow['Stay'];
             div.appendChild(link);
+        } else {
+            div.innerHTML += stayRow['Stay'];
+        }
 
         div.innerHTML += `<br>${stayRow['Notes']}`;
         div.style.left = `${((iDate-1) * 230) + 120}px`;
