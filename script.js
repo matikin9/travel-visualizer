@@ -37,6 +37,64 @@ let iLocale = 0;
 let lastLocale = '';
 let dateCounter;
 
+function parseDateValue(value) {
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        return new Date(value.getTime());
+    }
+
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    const raw = value.trim();
+    if (!raw) {
+        return null;
+    }
+
+    // Support ISO-like values first.
+    const isoMatch = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (isoMatch) {
+        const year = Number(isoMatch[1]);
+        const month = Number(isoMatch[2]);
+        const day = Number(isoMatch[3]);
+        const parsed = new Date(year, month - 1, day);
+        if (!Number.isNaN(parsed.getTime())) {
+            return parsed;
+        }
+    }
+
+    // Support US-style m/d/yyyy and m/d/yy, which iOS may parse inconsistently.
+    const usMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (usMatch) {
+        const month = Number(usMatch[1]);
+        const day = Number(usMatch[2]);
+        let year = Number(usMatch[3]);
+
+        if (year < 100) {
+            year += 2000;
+        }
+
+        const parsed = new Date(year, month - 1, day);
+
+        // Guard against invalid rollover dates like 2/31/2026.
+        if (
+            !Number.isNaN(parsed.getTime()) &&
+            parsed.getFullYear() === year &&
+            parsed.getMonth() === month - 1 &&
+            parsed.getDate() === day
+        ) {
+            return parsed;
+        }
+    }
+
+    const fallback = new Date(raw);
+    if (!Number.isNaN(fallback.getTime())) {
+        return fallback;
+    }
+
+    return null;
+}
+
 function setBackgroundHeight(requiredHeight) {
     const docHeight = Math.max(
         document.body.scrollHeight,
@@ -61,7 +119,10 @@ function displayData(stayData, activityData) {
 
         if (iDate == 0) {
             // initialize with 2 columns
-            dateCounter = new Date(stayRow['Date']);
+            dateCounter = parseDateValue(stayRow['Date']);
+            if (!dateCounter) {
+                return;
+            }
             createColumn(dateCounter);
             
             iDate++;
