@@ -155,79 +155,169 @@ function createColumn(date) {
     background.appendChild(bgColumn);
 }
 
-// add drag-to-pan behavior with pointer capture for smoother UX and no text selection while dragging
+// drag-to-pan with iOS-safe behavior: only start drag after threshold, preserve taps/clicks
+const DRAG_THRESHOLD = 6;
+let isPointerDown = false;
 let isDragging = false;
 let didDrag = false;
-let dragPointerId = null;
+let activePointerId = null;
+let startX = 0;
+let startY = 0;
 let lastX = 0;
 let lastY = 0;
 
-function stopDragging() {
+function isInteractiveElement(target) {
+    return !!target.closest('a, button, input, textarea, select, label');
+}
+
+function beginPointerTrack(pointerId, x, y) {
+    isPointerDown = true;
     isDragging = false;
-    dragPointerId = null;
+    didDrag = false;
+    activePointerId = pointerId;
+    startX = x;
+    startY = y;
+    lastX = x;
+    lastY = y;
+}
+
+function stopDragging() {
+    isPointerDown = false;
+    isDragging = false;
+    activePointerId = null;
     document.body.classList.remove('is-dragging');
 }
 
-document.addEventListener('pointerdown', function(event) {
-    if (event.button !== 0) {
-        return;
+function handlePanMove(x, y) {
+    if (!isPointerDown) {
+        return false;
     }
 
-    isDragging = true;
-    didDrag = false;
-    dragPointerId = event.pointerId;
-    lastX = event.clientX;
-    lastY = event.clientY;
+    const movedX = x - startX;
+    const movedY = y - startY;
 
-    document.body.classList.add('is-dragging');
-
-    if (document.body.setPointerCapture) {
-        document.body.setPointerCapture(event.pointerId);
+    if (!isDragging && (Math.abs(movedX) >= DRAG_THRESHOLD || Math.abs(movedY) >= DRAG_THRESHOLD)) {
+        isDragging = true;
+        document.body.classList.add('is-dragging');
     }
 
-    event.preventDefault();
-});
-
-document.addEventListener('pointermove', function(event) {
-    if (!isDragging || event.pointerId !== dragPointerId) {
-        return;
+    if (!isDragging) {
+        return false;
     }
 
-    const deltaX = lastX - event.clientX;
-    const deltaY = lastY - event.clientY;
-
-    if (Math.abs(deltaX) > 0 || Math.abs(deltaY) > 0) {
-        didDrag = true;
-    }
-
+    const deltaX = lastX - x;
+    const deltaY = lastY - y;
     window.scrollBy(deltaX, deltaY);
-    lastX = event.clientX;
-    lastY = event.clientY;
+    lastX = x;
+    lastY = y;
+    didDrag = true;
 
-    event.preventDefault();
-});
+    return true;
+}
 
-document.addEventListener('pointerup', function(event) {
-    if (event.pointerId === dragPointerId) {
-        stopDragging();
-    }
-});
+if ('PointerEvent' in window) {
+    document.addEventListener('pointerdown', function(event) {
+        if (!event.isPrimary || event.button !== 0) {
+            return;
+        }
 
-document.addEventListener('pointercancel', function(event) {
-    if (event.pointerId === dragPointerId) {
-        stopDragging();
-    }
-});
+        if (isInteractiveElement(event.target)) {
+            return;
+        }
+
+        beginPointerTrack(event.pointerId, event.clientX, event.clientY);
+
+        if (document.body.setPointerCapture) {
+            document.body.setPointerCapture(event.pointerId);
+        }
+    });
+
+    document.addEventListener('pointermove', function(event) {
+        if (event.pointerId !== activePointerId) {
+            return;
+        }
+
+        if (handlePanMove(event.clientX, event.clientY)) {
+            event.preventDefault();
+        }
+    }, { passive: false });
+
+    document.addEventListener('pointerup', function(event) {
+        if (event.pointerId === activePointerId) {
+            stopDragging();
+        }
+    });
+
+    document.addEventListener('pointercancel', function(event) {
+        if (event.pointerId === activePointerId) {
+            stopDragging();
+        }
+    });
+} else {
+    // Fallback for older iOS Safari versions without Pointer Events.
+    document.addEventListener('touchstart', function(event) {
+        if (event.touches.length !== 1) {
+            return;
+        }
+
+        if (isInteractiveElement(event.target)) {
+            return;
+        }
+
+        const touch = event.touches[0];
+        beginPointerTrack('touch', touch.clientX, touch.clientY);
+    }, { passive: true });
+
+    document.addEventListener('touchmove', function(event) {
+        if (activePointerId !== 'touch' || event.touches.length !== 1) {
+            return;
+        }
+
+        const touch = event.touches[0];
+        if (handlePanMove(touch.clientX, touch.clientY)) {
+            event.preventDefault();
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchend', function() {
+        if (activePointerId === 'touch') {
+            stopDragging();
+        }
+    });
+
+    document.addEventListener('touchcancel', function() {
+        if (activePointerId === 'touch') {
+            stopDragging();
+        }
+    });
+
+    document.addEventListener('mousedown', function(event) {
+        if (event.button !== 0 || isInteractiveElement(event.target)) {
+            return;
+        }
+
+        beginPointerTrack('mouse', event.clientX, event.clientY);
+    });
+
+    document.addEventListener('mousemove', function(event) {
+        if (activePointerId !== 'mouse') {
+            return;
+        }
+
+        handlePanMove(event.clientX, event.clientY);
+    });
+
+    document.addEventListener('mouseup', function() {
+        if (activePointerId === 'mouse') {
+            stopDragging();
+        }
+    });
+}
 
 window.addEventListener('blur', stopDragging);
+document.addEventListener('mouseleave', stopDragging);
 
-document.addEventListener('mouseleave', function() {
-    if (isDragging) {
-        stopDragging();
-    }
-});
-
-// Prevent links or text from being accidentally activated right after a pan gesture.
+// Prevent accidental link activation immediately after a pan gesture.
 document.addEventListener('click', function(event) {
     if (didDrag) {
         event.preventDefault();
