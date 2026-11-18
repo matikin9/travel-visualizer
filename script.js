@@ -87,6 +87,23 @@ function parseDateValue(value) {
         }
     }
 
+    // Support month/day values without year (e.g. 12/3) from the source sheet.
+    const monthDayMatch = raw.match(/^(\d{1,2})\/(\d{1,2})$/);
+    if (monthDayMatch) {
+        const month = Number(monthDayMatch[1]);
+        const day = Number(monthDayMatch[2]);
+        const currentYear = new Date().getFullYear();
+        const parsed = new Date(currentYear, month - 1, day);
+
+        if (
+            !Number.isNaN(parsed.getTime()) &&
+            parsed.getMonth() === month - 1 &&
+            parsed.getDate() === day
+        ) {
+            return parsed;
+        }
+    }
+
     const fallback = new Date(raw);
     if (!Number.isNaN(fallback.getTime())) {
         return fallback;
