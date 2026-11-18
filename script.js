@@ -37,6 +37,19 @@ let iLocale = 0;
 let lastLocale = '';
 let dateCounter;
 
+function setBackgroundHeight(requiredHeight) {
+    const docHeight = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.offsetHeight,
+        document.documentElement.clientHeight
+    );
+
+    const finalHeight = Math.max(requiredHeight, docHeight, window.innerHeight);
+    document.querySelector('#background').style.height = `${finalHeight}px`;
+}
+
 function displayData(stayData, activityData) {
     const itinerary = document.querySelector('#itinerary');
 
@@ -110,13 +123,17 @@ function displayData(stayData, activityData) {
 
         itinerary.appendChild(div);
 
-        // set html height to the y position of the last card plus its height
-        document.querySelector('#background').style.height = `${(iLocale * 120) + 280 + divchildHeight + 40}px`;
+        // Ensure the background always covers the full page height.
+        setBackgroundHeight((iLocale * 120) + 280 + divchildHeight + 40);
         
         lastLocale = stayRow['Locale'];
         iDate++;
     });
 }
+
+window.addEventListener('resize', function() {
+    setBackgroundHeight(document.documentElement.scrollHeight);
+});
 
 function createColumn(date) {
     const background = document.querySelector('#background');
@@ -138,26 +155,83 @@ function createColumn(date) {
     background.appendChild(bgColumn);
 }
 
-// add event listener for a click and drag event and translate it to vertical and horizontal scrolling
+// add drag-to-pan behavior with pointer capture for smoother UX and no text selection while dragging
 let isDragging = false;
+let didDrag = false;
+let dragPointerId = null;
 let lastX = 0;
 let lastY = 0;
-document.addEventListener('mousedown', function(event) {
+
+function stopDragging() {
+    isDragging = false;
+    dragPointerId = null;
+    document.body.classList.remove('is-dragging');
+}
+
+document.addEventListener('pointerdown', function(event) {
+    if (event.button !== 0) {
+        return;
+    }
+
     isDragging = true;
+    didDrag = false;
+    dragPointerId = event.pointerId;
     lastX = event.clientX;
     lastY = event.clientY;
-    // change cursor to grabbing
-    document.body.style.cursor = 'grabbing';
+
+    document.body.classList.add('is-dragging');
+
+    if (document.body.setPointerCapture) {
+        document.body.setPointerCapture(event.pointerId);
+    }
+
+    event.preventDefault();
 });
-document.addEventListener('mouseup', function(event) {
-    isDragging = false;
-    // change cursor back to normal
-    document.body.style.cursor = 'default';
+
+document.addEventListener('pointermove', function(event) {
+    if (!isDragging || event.pointerId !== dragPointerId) {
+        return;
+    }
+
+    const deltaX = lastX - event.clientX;
+    const deltaY = lastY - event.clientY;
+
+    if (Math.abs(deltaX) > 0 || Math.abs(deltaY) > 0) {
+        didDrag = true;
+    }
+
+    window.scrollBy(deltaX, deltaY);
+    lastX = event.clientX;
+    lastY = event.clientY;
+
+    event.preventDefault();
 });
-document.addEventListener('mousemove', function(event) {
-    if (isDragging) {
-        window.scroll(window.scrollX + (lastX - event.clientX), window.scrollY + (lastY - event.clientY));
-        lastX = event.clientX;
-        lastY = event.clientY;
+
+document.addEventListener('pointerup', function(event) {
+    if (event.pointerId === dragPointerId) {
+        stopDragging();
     }
 });
+
+document.addEventListener('pointercancel', function(event) {
+    if (event.pointerId === dragPointerId) {
+        stopDragging();
+    }
+});
+
+window.addEventListener('blur', stopDragging);
+
+document.addEventListener('mouseleave', function() {
+    if (isDragging) {
+        stopDragging();
+    }
+});
+
+// Prevent links or text from being accidentally activated right after a pan gesture.
+document.addEventListener('click', function(event) {
+    if (didDrag) {
+        event.preventDefault();
+        event.stopPropagation();
+        didDrag = false;
+    }
+}, true);
